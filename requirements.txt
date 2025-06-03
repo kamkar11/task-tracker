@@ -1,0 +1,8 @@
+fastapi
+pylint
+alembic
+uvicorn
+sqlalchemy
+pydantic
+pytest
+
