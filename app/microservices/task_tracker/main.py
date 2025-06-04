@@ -1,4 +1,4 @@
-from app.application import create_application
+from common.application import create_application
 from src.routers.main_router import main_router
 
 
