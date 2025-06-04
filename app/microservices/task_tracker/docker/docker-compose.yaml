@@ -1,0 +1,22 @@
+---
+services:
+  task-tracker:
+    build:
+      context: ../../../../
+      dockerfile: app/base_image/Dockerfile
+    image: base-python:3.12.5
+    ports:
+      - 8001:8000
+    volumes:
+      - ../../task_tracker:/app
+      - ../../../../common:/app/common
+    env_file:
+      - ../../../../.env
+    environment:
+      APP_NAME: task_tracker
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://localhost:8000/healthcheck || exit 1"]
+      interval: 5s
+      retries: 10
+      start_period: 10s
+      timeout: 10s
