@@ -9,12 +9,20 @@ class TaskStatus(str, Enum):
     COMPLETED = "completed"
 
 
-class Task(BaseModel):
+class TaskBase(BaseModel):
     status: TaskStatus
     title: str
     description: str | None = None
     due_date: datetime
 
 
-class TaskResponse(Task):
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskUpdate(TaskBase):
+    pass
+
+
+class Task(TaskBase):
     pass
