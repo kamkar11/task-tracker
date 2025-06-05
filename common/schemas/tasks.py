@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from pydantic import BaseModel
 
 
 class TaskStatus(str, Enum):
@@ -8,10 +9,10 @@ class TaskStatus(str, Enum):
     COMPLETED = "completed"
 
 
-class Task:
+class Task(BaseModel):
     status: TaskStatus
     title: str
-    description: str | None
+    description: str | None = None
     due_date: datetime
 
 
