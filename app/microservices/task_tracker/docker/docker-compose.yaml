@@ -6,7 +6,7 @@ services:
       dockerfile: app/base_image/Dockerfile
     image: base-python:3.12.5
     ports:
-      - 8001:8000
+      - "${TASK_TRACKER_PORT}:${TASK_TRACKER_INTERNAL_PORT}"
     volumes:
       - ../:/app
       - ../../../../common:/app/common
@@ -14,9 +14,10 @@ services:
       - ../../../../.env
     environment:
       APP_NAME: task_tracker
-    command: ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+      PORT: ${TASK_TRACKER_INTERNAL_PORT}
+    command: ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${TASK_TRACKER_INTERNAL_PORT}", "--reload"]
     healthcheck:
-      test: ["CMD-SHELL", "curl http://localhost:8000/healthcheck || exit 1"]
+      test: ["CMD-SHELL", "curl http://localhost:${TASK_TRACKER_INTERNAL_PORT}/healthcheck || exit 1"]
       interval: 5s
       retries: 10
       start_period: 10s

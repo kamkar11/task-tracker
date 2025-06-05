@@ -5,6 +5,11 @@ RED := \033[1;31m
 YELLOW := \033[1;33m
 NC := \033[0m # No Color
 
+# Environment variables
+export TASK_TRACKER_PORT=8001
+export TASK_TRACKER_INTERNAL_PORT=8000
+export APP_NAME=task_tracker
+
 .PHONY: help network build build-force task-tracker task-tracker-build up up-build down logs clean test lint install
 
 # Default target when just running 'make'
