@@ -13,8 +13,14 @@ services:
     env_file:
       - ../../../../.env
     environment:
-      APP_NAME: task_tracker
-      PORT: ${TASK_TRACKER_INTERNAL_PORT}
+      PROJECT_NAME: ${PROJECT_NAME}
+      VERSION: ${VERSION}
+      API_V1_STR: ${API_V1_STR}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     command: ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${TASK_TRACKER_INTERNAL_PORT}", "--reload"]
     healthcheck:
       test: ["CMD-SHELL", "curl http://localhost:${TASK_TRACKER_INTERNAL_PORT}/healthcheck || exit 1"]

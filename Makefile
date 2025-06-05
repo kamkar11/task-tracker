@@ -5,19 +5,13 @@ RED := \033[1;31m
 YELLOW := \033[1;33m
 NC := \033[0m # No Color
 
-# Environment variables
-# Task Tracker
-export TASK_TRACKER_PORT=8001
-export TASK_TRACKER_INTERNAL_PORT=8000
-export APP_NAME=task_tracker
+# Load environment variables from .env file if it exists
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
 
-# PostgreSQL
-export POSTGRES_PORT=5432
-export POSTGRES_DB=taskdb
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=postgres
-
-.PHONY: help network build build-force task-tracker postgres up down logs clean test lint install
+.PHONY: help network build build-force task-tracker postgres up down logs clean test lint install env-file
 
 # Default target when just running 'make'
 .DEFAULT_GOAL := help
@@ -28,6 +22,24 @@ help: ## Show this help message
 	@echo ''
 	@echo 'Targets:'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  ${BLUE}%-15s${NC} %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+#######################
+# Environment Setup
+#######################
+
+env-file: ## Create .env file from template if it doesn't exist
+	@if [ ! -f .env ]; then \
+		if [ -f .env.example ]; then \
+			echo "${BLUE}Creating .env file from template...${NC}"; \
+			cp .env.example .env; \
+			echo "${GREEN}.env file created successfully from template.${NC}"; \
+		else \
+			echo "${RED}Error: .env.example file not found!${NC}"; \
+			exit 1; \
+		fi \
+	else \
+		echo "${YELLOW}.env file already exists.${NC}"; \
+	fi
 
 #######################
 # Docker Operations
@@ -49,11 +61,11 @@ build-force: ## Force rebuild base Python image
 	@echo "${BLUE}Force rebuilding base Python image...${NC}"
 	docker build --no-cache -f app/base_image/Dockerfile -t base-python:3.12.5 .
 
-task-tracker: ## Start task-tracker service
+task-tracker: env-file ## Start task-tracker service
 	@echo "${BLUE}Starting task-tracker service...${NC}"
 	cd app/microservices/task_tracker/docker && docker compose up -d
 
-postgres: ## Start PostgreSQL service
+postgres: env-file ## Start PostgreSQL service
 	@echo "${BLUE}Starting PostgreSQL service...${NC}"
 	cd app/microservices/postgres/docker && docker compose up -d
 
@@ -113,9 +125,6 @@ test: ## Run tests
 ps: ## Show running containers
 	@echo "${BLUE}Running containers:${NC}"
 	docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-
-restart: down up ## Restart all services
-	@echo "${GREEN}Services restarted${NC}"
 
 postgres-shell: ## Open PostgreSQL shell
 	@echo "${BLUE}Opening PostgreSQL shell...${NC}"
