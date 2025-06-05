@@ -6,11 +6,18 @@ YELLOW := \033[1;33m
 NC := \033[0m # No Color
 
 # Environment variables
+# Task Tracker
 export TASK_TRACKER_PORT=8001
 export TASK_TRACKER_INTERNAL_PORT=8000
 export APP_NAME=task_tracker
 
-.PHONY: help network build build-force task-tracker task-tracker-build up up-build down logs clean test lint install
+# PostgreSQL
+export POSTGRES_PORT=5432
+export POSTGRES_DB=taskdb
+export POSTGRES_USER=postgres
+export POSTGRES_PASSWORD=postgres
+
+.PHONY: help network build build-force task-tracker postgres up down logs clean test lint install
 
 # Default target when just running 'make'
 .DEFAULT_GOAL := help
@@ -30,7 +37,7 @@ network: ## Create shared Docker network
 	@echo "${BLUE}Creating shared network...${NC}"
 	@docker network create shared-network || true
 
-build: ## Build base Python image (only if not exists)
+build: ## Build base Python image
 	@echo "${BLUE}Building base Python image if not exists...${NC}"
 	@if [ "$$(docker images -q base-python:3.12.5 2> /dev/null)" = "" ]; then \
 		docker build -f app/base_image/Dockerfile -t base-python:3.12.5 .; \
@@ -42,33 +49,39 @@ build-force: ## Force rebuild base Python image
 	@echo "${BLUE}Force rebuilding base Python image...${NC}"
 	docker build --no-cache -f app/base_image/Dockerfile -t base-python:3.12.5 .
 
-task-tracker: ## Start task-tracker service (without rebuild)
+task-tracker: ## Start task-tracker service
 	@echo "${BLUE}Starting task-tracker service...${NC}"
 	cd app/microservices/task_tracker/docker && docker compose up -d
 
-task-tracker-build: ## Start task-tracker service with rebuild
-	@echo "${BLUE}Starting task-tracker service with rebuild...${NC}"
-	cd app/microservices/task_tracker/docker && docker compose up --build -d
+postgres: ## Start PostgreSQL service
+	@echo "${BLUE}Starting PostgreSQL service...${NC}"
+	cd app/microservices/postgres/docker && docker compose up -d
 
-up: network build task-tracker ## Start all services (without rebuild)
+up: network build task-tracker postgres ## Start all services
 	@echo "${GREEN}All services are up!${NC}"
-
-up-build: network build-force task-tracker-build ## Start all services with rebuild
-	@echo "${GREEN}All services are up with fresh builds!${NC}"
 
 down: ## Stop all services
 	@echo "${BLUE}Stopping all services...${NC}"
 	cd app/microservices/task_tracker/docker && docker compose down
+	cd app/microservices/postgres/docker && docker compose down
 	@echo "${GREEN}All services stopped${NC}"
 
-logs: ## View task-tracker logs
-	@echo "${BLUE}Showing task-tracker logs...${NC}"
-	cd app/microservices/task_tracker/docker && docker compose logs -f
+logs: ## View service logs (usage: make logs service=<service-name>)
+	@if [ "$(service)" = "postgres" ]; then \
+		echo "${BLUE}Showing PostgreSQL logs...${NC}" && \
+		cd app/microservices/postgres/docker && docker compose logs -f; \
+	elif [ "$(service)" = "task-tracker" ]; then \
+		echo "${BLUE}Showing task-tracker logs...${NC}" && \
+		cd app/microservices/task_tracker/docker && docker compose logs -f; \
+	else \
+		echo "${RED}Please specify a service: make logs service=<postgres|task-tracker>${NC}"; \
+	fi
 
-clean: down ## Clean up all containers and networks
+clean: down ## Clean up all containers, networks, and volumes
 	@echo "${BLUE}Cleaning up Docker resources...${NC}"
 	docker network rm shared-network || true
 	docker system prune -f
+	docker volume rm $$(docker volume ls -q) || true
 	@echo "${GREEN}Cleanup complete${NC}"
 
 #######################
@@ -101,8 +114,9 @@ ps: ## Show running containers
 	@echo "${BLUE}Running containers:${NC}"
 	docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-restart: down up ## Restart all services (without rebuild)
+restart: down up ## Restart all services
 	@echo "${GREEN}Services restarted${NC}"
 
-restart-build: down up-build ## Restart all services with rebuild
-	@echo "${GREEN}Services restarted with fresh builds${NC}"
+postgres-shell: ## Open PostgreSQL shell
+	@echo "${BLUE}Opening PostgreSQL shell...${NC}"
+	cd app/microservices/postgres/docker && docker compose exec postgres psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}
