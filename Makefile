@@ -129,3 +129,20 @@ ps: ## Show running containers
 postgres-shell: ## Open PostgreSQL shell
 	@echo "${BLUE}Opening PostgreSQL shell...${NC}"
 	cd app/microservices/postgres/docker && docker compose exec postgres psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+
+
+######################
+# Alembic
+#####################
+
+migrate:
+	alembic revision --autogenerate -m "$(name)"
+
+upgrade:
+	alembic upgrade head
+
+downgrade:
+	alembic downgrade -1
+
+history:
+	alembic history
