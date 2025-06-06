@@ -4,6 +4,7 @@ alembic
 uvicorn
 sqlalchemy
 pydantic
+pydantic-settings
 
 # test
 pytest

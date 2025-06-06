@@ -13,7 +13,7 @@ class TaskBase(BaseModel):
     status: TaskStatus
     title: str
     description: str | None = None
-    due_date: datetime
+    due_date: datetime | None = None
 
 
 class TaskCreate(TaskBase):

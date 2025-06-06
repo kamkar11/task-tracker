@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Any, Dict
 
 from pydantic import PostgresDsn, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -25,11 +25,9 @@ class Settings(BaseSettings):
     TASK_TRACKER_PORT: int = 8001
     TASK_TRACKER_INTERNAL_PORT: int = 8000
 
-    # CORS settings
-    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost", "http://localhost:8001"]
-
     @field_validator("DATABASE_URI", mode='before')
-    def assemble_db_connection(cls, v: str | None, values: Dict[str, Any]) -> Any:
+    @classmethod
+    def build_db_connection(cls, v: str | None, values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
         return PostgresDsn.build(
@@ -41,8 +39,10 @@ class Settings(BaseSettings):
             path=f"{values.get('POSTGRES_DB') or ''}",
         )
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True,
-    ) 
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()
