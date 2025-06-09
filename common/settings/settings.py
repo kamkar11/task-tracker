@@ -22,21 +22,22 @@ class Settings(BaseSettings):
     DATABASE_URI: PostgresDsn | None = None
 
     # Task Tracker Service settings
-    TASK_TRACKER_PORT: int = 8001
+    TASK_TRACKER_PORT: int = 8002
     TASK_TRACKER_INTERNAL_PORT: int = 8000
 
     @field_validator("DATABASE_URI", mode='before')
     @classmethod
-    def build_db_connection(cls, v: str | None, values: Dict[str, Any]) -> Any:
+    def build_db_connection(cls, v: str | None, info) -> Any:
         if isinstance(v, str):
             return v
+        data = info.data
         return PostgresDsn.build(
             scheme="postgresql",
-            username=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_HOST"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"{values.get('POSTGRES_DB') or ''}",
+            username=data["POSTGRES_USER"],
+            password=data["POSTGRES_PASSWORD"],
+            host=data["POSTGRES_HOST"],
+            port=data["POSTGRES_PORT"],
+            path=f"{data['POSTGRES_DB'] or ''}",
         )
 
 

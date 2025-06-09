@@ -1,10 +1,12 @@
 from alembic import context
 from sqlalchemy import engine_from_config
 
-from common.db import Base
+from common.db.base import Base
 from common.settings.settings import settings
 
 config = context.config
+
+config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URI))
 
 def run_migrations_offline():
     context.configure(

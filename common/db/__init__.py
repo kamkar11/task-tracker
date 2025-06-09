@@ -1,5 +1,5 @@
-from base import Base
-from session import SessionLocal, engine
+from common.db.base import Base
+from common.db.session import SessionLocal, engine
 
 __all__ = [
     "Base",

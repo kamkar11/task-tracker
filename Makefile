@@ -49,13 +49,21 @@ network: ## Create shared Docker network
 	@echo "${BLUE}Creating shared network...${NC}"
 	@docker network create shared-network || true
 
-build: ## Build base Python image
-	@echo "${BLUE}Building base Python image if not exists...${NC}"
+build: ## Build base and migrator images
+	@echo "${BLUE}Building base-python:3.12.5 if not exists...${NC}"
 	@if [ "$$(docker images -q base-python:3.12.5 2> /dev/null)" = "" ]; then \
 		docker build -f app/base_image/Dockerfile -t base-python:3.12.5 .; \
 	else \
 		echo "${GREEN}Image base-python:3.12.5 already exists${NC}"; \
 	fi
+
+# 	@echo "${BLUE}Building db-migrator image...${NC}"
+# 	@if [ "$$(docker images -q db-migrator 2> /dev/null)" = "" ]; then \
+# 		docker build -f app/microservices/db_migrator/Dockerfile -t db-migrator:latest .; \
+# 	else \
+# 		echo "${GREEN}Image db-migrator already exists${NC}"; \
+# 	fi
+
 
 build-force: ## Force rebuild base Python image
 	@echo "${BLUE}Force rebuilding base Python image...${NC}"
@@ -65,17 +73,18 @@ task-tracker: env-file ## Start task-tracker service
 	@echo "${BLUE}Starting task-tracker service...${NC}"
 	cd app/microservices/task_tracker/docker && docker compose up -d
 
-postgres: env-file ## Start PostgreSQL service
-	@echo "${BLUE}Starting PostgreSQL service...${NC}"
-	cd app/microservices/postgres/docker && docker compose up -d
+db-migrator: env-file ## Start db-migrator and postgres services
+	@echo "${BLUE}Starting db service...${NC}"
+	docker compose -f app/microservices/postgres/docker/docker-compose.yaml \
+	               -f app/microservices/db_migrator/docker/docker-compose.yaml up -d
 
-up: network build task-tracker postgres ## Start all services
+up: network build db-migrator task-tracker ## Start all services
 	@echo "${GREEN}All services are up!${NC}"
 
 down: ## Stop all services
 	@echo "${BLUE}Stopping all services...${NC}"
-	cd app/microservices/task_tracker/docker && docker compose down
-	cd app/microservices/postgres/docker && docker compose down
+	cd app/microservices/task_tracker/docker && docker compose stop
+	cd app/microservices/postgres/docker && docker compose stop
 	@echo "${GREEN}All services stopped${NC}"
 
 logs: ## View service logs (usage: make logs service=<service-name>)
@@ -135,14 +144,22 @@ postgres-shell: ## Open PostgreSQL shell
 # Alembic
 #####################
 
-migrate:
-	alembic revision --autogenerate -m "$(name)"
+alembic_migrate:
+	docker compose -f app/microservices/postgres/docker/docker-compose.yaml \
+	               -f app/microservices/db_migrator/docker/docker-compose.yaml \
+	               run --rm db-migrator alembic revision --autogenerate -m "$(name)"
 
-upgrade:
-	alembic upgrade head
+alembic_upgrade:
+	docker compose -f app/microservices/postgres/docker/docker-compose.yaml \
+	               -f app/microservices/db_migrator/docker/docker-compose.yaml \
+	               run --rm db-migrator alembic upgrade head
 
-downgrade:
-	alembic downgrade -1
+alembic_downgrade:
+	docker compose -f app/microservices/postgres/docker/docker-compose.yaml \
+	               -f app/microservices/db_migrator/docker/docker-compose.yaml \
+	               run --rm db-migrator alembic downgrade -1
 
-history:
-	alembic history
+alembic_history:
+	docker compose -f app/microservices/postgres/docker/docker-compose.yaml \
+	               -f app/microservices/db_migrator/docker/docker-compose.yaml \
+	               run --rm db-migrator alembic history

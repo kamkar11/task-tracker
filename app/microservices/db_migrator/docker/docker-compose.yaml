@@ -2,15 +2,12 @@
 services:
   db-migrator:
     build:
-      context: ../../../../
-      dockerfile: app/base_image/Dockerfile
-    image: base-python:3.12.5
+      context: ../../../..
+      dockerfile: app/microservices/db_migrator/Dockerfile
     env_file:
       - ../../../../.env
     environment:
       CONNECTION_APP_NAME: db_migrator
-    command: alembic upgrade head
     depends_on:
       postgres:
         condition: service_healthy
-        restart: true

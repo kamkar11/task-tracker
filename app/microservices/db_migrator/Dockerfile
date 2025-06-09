@@ -1,6 +1,8 @@
 FROM base-python:3.12.5
 
-COPY ./alembic ./alembic
-COPY ./alembic.ini ./alembic.ini
+WORKDIR /app
+
+COPY app/microservices/db_migrator/alembic.ini ./alembic.ini
+COPY app/microservices/db_migrator/alembic ./alembic
 
 CMD ["alembic", "upgrade", "head"]
