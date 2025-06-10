@@ -8,6 +8,8 @@ services:
       - ../../../../.env
     environment:
       CONNECTION_APP_NAME: db_migrator
+    volumes:
+      - ./../../db_migrator/alembic/versions:/app/alembic/versions
     depends_on:
       postgres:
         condition: service_healthy
