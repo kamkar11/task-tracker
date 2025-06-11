@@ -6,7 +6,7 @@ from common.db import Base
 
 
 class TaskModel(Base):
-    __table__ = "tasks"
+    __tablename__ = "tasks"
 
     id: Mapped[str] = mapped_column(primary_key=True, index=True)
     title: Mapped[str] = mapped_column()

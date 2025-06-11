@@ -10,6 +10,7 @@ services:
       CONNECTION_APP_NAME: db_migrator
     volumes:
       - ./../../db_migrator/alembic/versions:/app/alembic/versions
+    command: alembic upgrade head
     depends_on:
       postgres:
         condition: service_healthy
