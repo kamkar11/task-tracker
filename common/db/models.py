@@ -8,7 +8,7 @@ from common.db import Base
 class TaskModel(Base):
     __tablename__ = "tasks"
 
-    id: Mapped[str] = mapped_column(primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column(nullable=True)
     status: Mapped[str] = mapped_column()

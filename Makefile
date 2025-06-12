@@ -124,7 +124,7 @@ lint: ## Run linters
 
 test: ## Run tests
 	@echo "${BLUE}Running tests...${NC}"
-	python -m pytest tests/ -v
+	python -m pytest app/tests/ -v
 	@echo "${GREEN}Tests complete${NC}"
 
 #######################

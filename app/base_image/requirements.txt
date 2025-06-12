@@ -5,8 +5,10 @@ uvicorn
 sqlalchemy
 pydantic
 pydantic-settings
-psycopg2
+psycopg2-binary
 
 # test
 pytest
+pytest-asyncio
+httpx
 
